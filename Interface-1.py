@@ -34,7 +34,7 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
     cursor = openconnection.cursor()
 
     max_rate = 5.0
-    range = float(max_rate / numberofpartitions)
+    partitionRange = float(max_rate / numberofpartitions)
 
     for i in range(0, numberofpartitions):
         partition_name = 'range_part' + str(i)
@@ -44,9 +44,9 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
         j = float(i)
 
         if i == 0:
-            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating >= {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*range), str((j+1)*range))
+            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating >= {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
         else:
-            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*range), str((j+1)*range))
+            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
         
         cursor.execute(createPartition)
 
