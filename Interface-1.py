@@ -37,10 +37,10 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
     range = float(max_rate / numberofpartitions)
 
     for i in range(0, numberofpartitions):
-        dropTable = "DROP TABLE IF EXISTS range_part" + (str(i)) + ";"
+        partition_name = 'range_part' + str(i)
+        dropTable = "DROP TABLE IF EXISTS "+ partition_name + ";"
         cursor.execute(dropTable)
 
-        partition_name = 'range_part' + str(p)
         j = float(i)
 
         if i == 0:
