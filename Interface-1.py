@@ -10,11 +10,42 @@ def getOpenConnection(user='postgres', password='1234', dbname='postgres'):
 
 
 def loadRatings(ratingstablename, ratingsfilepath, openconnection):
-    pass
+
+    cursor = openconnection.cursor()
+    dropTable = "DROP TABLE IF EXISTS " + ratingstablename
+    createTable = "CREATE TABLE " + ratingstablename + " (UserID INT, MovieID INT, Rating FLOAT);"
+
+    cursor.execute(dropTable)
+    cursor.execute(createTable)
+    openconnection.commit() # Required as most Python interpreters do not autocommit
+
+    with open(ratingsfilepath, "r") as file:
+        for row in file:
+            [userId, movieId, rating, timestamp] = row.split("::")
+
+            loadData = "INSERT INTO" + ratingstablename + "(UserID, MovieID, Rating) VALUES(%s,%s,%s);" % (userId, movieId, rating)
+            cursor.execute(loadData)
+    openconnection.commit()
+    cursor.close()
 
 
 def rangePartition(ratingstablename, numberofpartitions, openconnection):
     pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
