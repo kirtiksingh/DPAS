@@ -3,6 +3,7 @@
 # Interface for the assignement
 #
 
+from sys import flags
 import psycopg2
 
 def getOpenConnection(user='postgres', password='1234', dbname='postgres'):
@@ -30,7 +31,50 @@ def loadRatings(ratingstablename, ratingsfilepath, openconnection):
 
 
 def rangePartition(ratingstablename, numberofpartitions, openconnection):
-    pass
+    cursor = openconnection.cursor()
+
+    max_rate = 5.0
+    range = float(max_rate / numberofpartitions)
+
+    for i in range(0, numberofpartitions):
+        dropTable = "DROP TABLE IF EXISTS range_part" + (str(i)) + ";"
+        cursor.execute(dropTable)
+
+        partition_name = 'range_part' + str(p)
+        j = float(i)
+
+        if i == 0:
+            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating >= {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*range), str((j+1)*range))
+        else:
+            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*range), str((j+1)*range))
+        
+        cursor.execute(createPartition)
+
+    cursor.close()
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
