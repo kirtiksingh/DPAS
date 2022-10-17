@@ -53,7 +53,7 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
 
 
 def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
-    
+
     cursor = openconnection.cursor()
 
     selectAllRows = "SELECT * FROM {}".format(ratingstablename)
@@ -78,6 +78,31 @@ def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
 
         cursor.execute("CREATE TABLE IF NOT EXISTS partitions_rr(partition INT)")
         cursor.execute("INSERT INTO partitions_rr VALUES(%s)" % (numberofpartitions))
+
+    openconnection.commit()
+    cursor.close()
+
+def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
+
+    cursor = openconnection.cursor()
+
+    # Made while partitioning in the function above
+    cursor.execute("SELECT * FROM partitions_rr") 
+    noOfPartitions = cursor.fetchone()[0]
+    # OR 
+    # cursor.execute('''SELECT * FROM information_schema.tables WHERE table_name LIKE 'rrobin_part%' ''')
+    # noOfPartitions = len(cursor.fetchall())
+
+    # Next
+
+    selectAllRowsCount = "SELECT COUNT (*) FROM {};".format(ratingstablename)
+    cursor.execute(selectAllRowsCount)
+    totalRows = int(cursor.fetchone()[0])
+
+    newRowID = (totalRows % noOfPartitions)
+
+    insertNewRow = "INSERT INTO rrobin_part{} VALUES({}, {}, {})".format(newRowID, userid, itemid, rating)
+    cursor.execute(insertNewRow)
 
     openconnection.commit()
     cursor.close()
@@ -114,12 +139,6 @@ def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
 
 
 
-
-
-
-
-def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
-    pass
 
 
 def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
