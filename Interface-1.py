@@ -23,7 +23,7 @@ def loadRatings(ratingstablename, ratingsfilepath, openconnection):
         for row in file:
             [userId, movieId, rating, timestamp] = row.split("::")
 
-            loadData = "INSERT INTO {}(UserID, MovieID, Rating) VALUES({},{},{});".format(userId, movieId, rating)
+            loadData = "INSERT INTO {}(UserID, MovieID, Rating) VALUES({},{},{});".format(ratingstablename, userId, movieId, rating)
             cursor.execute(loadData)
     openconnection.commit()
     cursor.close()
