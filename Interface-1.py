@@ -100,7 +100,7 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
 
     tableInsert = "INSERT INTO {} VALUES ({},{},{})".format(ratingstablename, userid, itemid, rating)
     cursor.execute(tableInsert)
-    
+
     partitionSelect = "SELECT * FROM information_schema.tables WHERE table_name LIKE 'range_part%' "
     cursor.execute(partitionSelect)
 
@@ -121,41 +121,6 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
                 cursor.execute(insertionString)
     openconnection.commit()
     cursor.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def createDB(dbname='dds_assignment'):
     """
