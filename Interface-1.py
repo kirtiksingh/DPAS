@@ -100,9 +100,7 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
 
     tableInsert = "INSERT INTO {} VALUES ({},{},{})".format(ratingstablename, userid, itemid, rating)
     cursor.execute(tableInsert)
-
-    # Sure
-
+    
     partitionSelect = "SELECT * FROM information_schema.tables WHERE table_name LIKE 'range_part%' "
     cursor.execute(partitionSelect)
 
@@ -111,7 +109,6 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
     partitionRange = float(max_rating / noOfPartitions)
 
     insertionQuery = "INSERT INTO range_part{} VALUES ({}, {}, {})"
-        
         
     for partitionNumber in xrange(noOfPartitions):
         if partitionNumber == 0:
