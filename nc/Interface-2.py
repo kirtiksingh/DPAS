@@ -16,7 +16,7 @@ def loadRatings(ratingstablename, ratingsfilepath, openconnection):
     with open(ratingsfilepath, "r") as ratingfile:
         for row in ratingfile:
             [UserId, MovieId, Rating, Timestamp] = row.split("::")
-            cur.execute("INSERT INTO {0} VALUES ({1},{2},{3})".format(ratingstablename, UserId, MovieId, Rating))
+            cur.execute("INSERT INTO {} VALUES ({},{},{})".format(ratingstablename, UserId, MovieId, Rating))
     ratingfile.close()
     openconnection.commit()
     cur.close()
@@ -28,9 +28,9 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
 
     for i in range(0,n):
         if i == 0:
-            cur.execute("CREATE TABLE range_part{0} AS SELECT * FROM {1} WHERE Rating >= {2} AND Rating <= {3};".format(i,ratingstablename, i*sizeofeachpartition, (i+1)*sizeofeachpartition))
+            cur.execute("CREATE TABLE range_part{} AS SELECT * FROM {} WHERE Rating >= {} AND Rating <= {};".format(i,ratingstablename, i*sizeofeachpartition, (i+1)*sizeofeachpartition))
         else:
-            cur.execute("CREATE TABLE range_part{0} AS SELECT * FROM {1} WHERE Rating > {2} AND Rating <= {3};".format(i,ratingstablename, i *sizeofeachpartition, (i+1) *sizeofeachpartition))
+            cur.execute("CREATE TABLE range_part{} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {};".format(i,ratingstablename, i *sizeofeachpartition, (i+1) *sizeofeachpartition))
     
     openconnection.commit()
     cur.close()
@@ -51,9 +51,9 @@ def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
 def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
     cur = openconnection.cursor()
     
-    cur.execute("INSERT INTO {0} VALUES ({1},{2},{3})".format(ratingstablename, userid, itemid, rating))
+    cur.execute("INSERT INTO {} VALUES ({},{},{})".format(ratingstablename, userid, itemid, rating))
     
-    cur.execute("SELECT * FROM {0}".format(ratingstablename))
+    cur.execute("SELECT * FROM {}".format(ratingstablename))
     rec = len(cur.fetchall())
     
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name LIKE 'rrobin_part%' ")
@@ -61,7 +61,7 @@ def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
 
     rr_partid = (rec-1)%parts
 
-    cur.execute('''INSERT INTO rrobin_part{0} VALUES ({1},{2},{3})'''.format(rr_partid, userid, itemid, rating))
+    cur.execute('''INSERT INTO rrobin_part{} VALUES ({},{},{})'''.format(rr_partid, userid, itemid, rating))
     openconnection.commit()
     cur.close()
     
@@ -73,7 +73,7 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
     
     cur = openconnection.cursor()
    
-    cur.execute("INSERT INTO {0} (Userid, Movieid, Rating) VALUES ({1}, {2}, {3})".format(ratingstablename, userid, itemid, rating))
+    cur.execute("INSERT INTO {} (Userid, Movieid, Rating) VALUES ({}, {}, {})".format(ratingstablename, userid, itemid, rating))
 
     cur.execute("SELECT * FROM information_schema.tables WHERE table_name LIKE 'range_part%' ")
     numberofpartitions = len(cur.fetchall())
@@ -81,12 +81,12 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
     for i in range(0,numberofpartitions):
         if i==0:
             if rating >=0 and rating <= sizeofeachpartition:
-                cur.execute("inser into range_part{0} values({1},{2},{3})".format(0,userid, itemid, rating))
+                cur.execute("insert into range_part{} values({},{},{})".format(0,userid, itemid, rating))
         else:
             if(rating > i*sizeofeachpartition and rating <= (i+1)*sizeofeachpartition):
-                cur.execute("inser into range_part{0} values({1},{2},{3})".format(i,userid, itemid, rating))
+                cur.execute("insert into range_part{} values({},{},{})".format(i,userid, itemid, rating))
             
-    # cur.execute("INSERT INTO range_part{} (Userid, Movieid, Rating) VALUES ({}, {}, {})".format(group, userid, itemid, rating))
+  
     openconnection.commit()
     cur.close()
 
