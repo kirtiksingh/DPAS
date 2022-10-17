@@ -49,51 +49,45 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
             createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
         
         cursor.execute(createPartition)
-
     cursor.close()
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
     pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
@@ -101,7 +95,70 @@ def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
 
 
 def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
-    pass
+    
+    cursor = openconnection.cursor()
+
+    tableInsert = "INSERT INTO {} VALUES ({},{},{})".format(ratingstablename, userid, itemid, rating)
+    cursor.execute(tableInsert)
+
+    # Sure
+
+    partitionSelect = "SELECT * FROM information_schema.tables WHERE table_name LIKE 'range_part%' "
+    cursor.execute(partitionSelect)
+
+    noOfPartitions = len(cursor.fetchall())
+    max_rating = 5.0
+    partitionRange = float(max_rating / noOfPartitions)
+
+    insertionQuery = "INSERT INTO range_part{} VALUES ({}, {}, {})"
+        
+        
+    for partitionNumber in xrange(noOfPartitions):
+        if partitionNumber == 0:
+            if rating >= (partitionNumber*partitionRange) and rating <= (partitionNumber+1)*partitionRange:
+                insertionString = insertionQuery.format(partitionNumber, userid, itemid, rating)
+                cursor.execute(insertionString)
+        else:
+            if rating > (partitionNumber*partitionRange) and rating <= (partitionNumber+1)*partitionRange:
+                insertionString = insertionQuery.format(partitionNumber, userid, itemid, rating)
+                cursor.execute(insertionString)
+    openconnection.commit()
+    cursor.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def createDB(dbname='dds_assignment'):
     """
