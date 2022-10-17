@@ -53,7 +53,35 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
 
 
 def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
-    pass
+    
+    cursor = openconnection.cursor()
+
+    selectAllRows = "SELECT * FROM {}".format(ratingstablename)
+    cursor.execute(selectAllRows)
+    rows = cursor.fetchall()
+
+    partition = 0
+
+    while partition < numberofpartitions:
+      rrTableName = "rrobin_part" + str(partition)
+      createRrTable = "CREATE TABLE IF NOT EXISTS {} (UserID INT, MovieID INT, Rating FLOAT)".format(rrTableName)
+      cursor.execute(createRrTable)
+      partition += 1
+
+    partition = 1
+    for r in rows:
+        rrTableName = "rrobin_part" + str(partition)
+        insertRrData = "INSERT INTO {}(UserID, MovieID, Rating) VALUES ({}, {}, {})".format(rrTableName, r[0], r[1], r[2]) 
+        cursor.execute(insertRrData)
+
+        partition = (partition + 1) % numberofpartitions
+
+        cursor.execute("CREATE TABLE IF NOT EXISTS partitions_rr(partition INT)")
+        cursor.execute("INSERT INTO partitions_rr VALUES(%s)" % (numberofpartitions))
+
+    openconnection.commit()
+    cursor.close()
+
 
 
 
