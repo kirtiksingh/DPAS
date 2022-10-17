@@ -11,7 +11,6 @@ def getOpenConnection(user='postgres', password='1234', dbname='postgres'):
 
 
 def loadRatings(ratingstablename, ratingsfilepath, openconnection):
-
     cursor = openconnection.cursor()
     dropTable = "DROP TABLE IF EXISTS " + ratingstablename
     createTable = "CREATE TABLE " + ratingstablename + " (UserID INT, MovieID INT, Rating FLOAT);"
@@ -24,11 +23,10 @@ def loadRatings(ratingstablename, ratingsfilepath, openconnection):
         for row in file:
             [userId, movieId, rating, timestamp] = row.split("::")
 
-            loadData = "INSERT INTO " + ratingstablename + "(UserID, MovieID, Rating) VALUES(%s,%s,%s);" % (userId, movieId, rating)
+            loadData = "INSERT INTO {}(UserID, MovieID, Rating) VALUES({},{},{});".format(userId, movieId, rating)
             cursor.execute(loadData)
     openconnection.commit()
     cursor.close()
-
 
 def rangePartition(ratingstablename, numberofpartitions, openconnection):
     cursor = openconnection.cursor()
@@ -37,23 +35,22 @@ def rangePartition(ratingstablename, numberofpartitions, openconnection):
     partitionRange = float(max_rate / numberofpartitions)
 
     for i in range(0, numberofpartitions):
-        partition_name = 'range_part' + str(i)
-        dropTable = "DROP TABLE IF EXISTS "+ partition_name + ";"
+        partitionName = 'range_part' + str(i)
+        dropTable = "DROP TABLE IF EXISTS {};".format(partitionName)
         cursor.execute(dropTable)
 
         j = float(i)
 
         if i == 0:
-            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating >= {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
+            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating >= {} AND Rating <= {} ;".format(partitionName, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
         else:
-            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {} ;".format(partition_name, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
-        
+            createPartition = "CREATE TABLE {} AS SELECT * FROM {} WHERE Rating > {} AND Rating <= {} ;".format(partitionName, ratingstablename, str(j*partitionRange), str((j+1)*partitionRange))
+
         cursor.execute(createPartition)
     cursor.close()
 
 
 def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
-
     cursor = openconnection.cursor()
 
     selectAllRows = "SELECT * FROM {}".format(ratingstablename)
@@ -82,18 +79,13 @@ def roundRobinPartition(ratingstablename, numberofpartitions, openconnection):
     openconnection.commit()
     cursor.close()
 
-def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
 
+def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
     cursor = openconnection.cursor()
 
-    # Made while partitioning in the function above
+    # Can be used if we want to use the temporary table made above
     cursor.execute("SELECT * FROM partitions_rr") 
     noOfPartitions = cursor.fetchone()[0]
-    # OR 
-    # cursor.execute('''SELECT * FROM information_schema.tables WHERE table_name LIKE 'rrobin_part%' ''')
-    # noOfPartitions = len(cursor.fetchall())
-
-    # Next
 
     selectAllRowsCount = "SELECT COUNT (*) FROM {};".format(ratingstablename)
     cursor.execute(selectAllRowsCount)
@@ -108,41 +100,7 @@ def roundrobininsert(ratingstablename, userid, itemid, rating, openconnection):
     cursor.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
-    
     cursor = openconnection.cursor()
 
     tableInsert = "INSERT INTO {} VALUES ({},{},{})".format(ratingstablename, userid, itemid, rating)
@@ -157,7 +115,7 @@ def rangeinsert(ratingstablename, userid, itemid, rating, openconnection):
 
     insertionQuery = "INSERT INTO range_part{} VALUES ({}, {}, {})"
         
-    for partitionNumber in xrange(noOfPartitions):
+    for partitionNumber in range(0, noOfPartitions):
         if partitionNumber == 0:
             if rating >= (partitionNumber*partitionRange) and rating <= (partitionNumber+1)*partitionRange:
                 insertionString = insertionQuery.format(partitionNumber, userid, itemid, rating)
