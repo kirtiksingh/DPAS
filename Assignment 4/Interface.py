@@ -71,7 +71,7 @@ def PointQuery(ratingsTableName, ratingValue, openconnection):
 
     with openconnection.cursor() as cursor:
 
-        partitionQuery = '''SELECT partitionnum FROM {} WHERE maxrating>={} AND minrating<={};'''.format(rangeMetaTable, ratingValue)
+        partitionQuery = '''SELECT partitionnum FROM {} WHERE maxrating>={} AND minrating<={};'''.format(rangeMetaTable, ratingValue, ratingValue)
         cursor.execute(partitionQuery)
         partitions = cursor.fetchall()
         partitions = [partition[0] for partition in partitions]
