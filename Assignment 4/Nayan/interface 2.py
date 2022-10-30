@@ -4,7 +4,7 @@ import sys
 # Donot close the connection inside this file i.e. do not perform openconnection.close()
 def RangeQuery(ratingsTableName, ratingMinValue, ratingMaxValue, openconnection):
 
-    result = []
+    ans = []
     cur = openconnection.cursor()
 
     partSelectQuery = '''SELECT partitionnum FROM rangeratingsmetadata WHERE maxrating>={} AND minrating<={};'''.format(ratingMinValue, ratingMaxValue)
@@ -16,11 +16,11 @@ def RangeQuery(ratingsTableName, ratingMinValue, ratingMaxValue, openconnection)
 
     for part in parts:
         cur.execute(rangeselectquery.format(part, ratingMinValue, ratingMaxValue))
-        sqlres = cur.fetchall()
-        for res in sqlres:
+        result = cur.fetchall()
+        for res in result:
             res = list(res)
             res.insert(0,'RangeRatingsPart{}'.format(part))
-            result.append(res)
+            ans.append(res)
 
     roundrobincountquery = '''SELECT partitionnum FROM roundrobinratingsmetadata;'''
     cur.execute(roundrobincountquery)
@@ -30,19 +30,19 @@ def RangeQuery(ratingsTableName, ratingMinValue, ratingMaxValue, openconnection)
 
     for i in range(0,roundrobinparts):
         cur.execute(roundrobinselectquery.format(i, ratingMinValue, ratingMaxValue))
-        sqlres = cur.fetchall()
-        for res in sqlres:
+        result = cur.fetchall()
+        for res in result:
             res = list(res)
             res.insert(0, 'RoundRobinRatingsPart{}'.format(i))
-            result.append(res)
+            ans.append(res)
 
-    writeToFile('RangeQueryOut.txt', result)
+    writeToFile('RangeQueryOut.txt', ans)
 
 
 
 
 def PointQuery(ratingsTableName, ratingValue, openconnection):
-    result = []
+    ans = []
     cur = openconnection.cursor()
 
     partSelectQuery = '''SELECT partitionnum FROM rangeratingsmetadata WHERE maxrating>={} AND minrating<={};'''.format(ratingValue,ratingValue)
@@ -54,11 +54,11 @@ def PointQuery(ratingsTableName, ratingValue, openconnection):
 
     for part in parts:
         cur.execute(rangeselectquery.format(part, ratingValue))
-        sqlres = cur.fetchall()
-        for res in sqlres:
+        result = cur.fetchall()
+        for res in result:
             res = list(res)
             res.insert(0, 'RangeRatingsPart{}'.format(part))
-            result.append(res)
+            ans.append(res)
 
     roundrobincountquery = '''SELECT partitionnum FROM roundrobinratingsmetadata;'''
 
@@ -69,13 +69,13 @@ def PointQuery(ratingsTableName, ratingValue, openconnection):
 
     for i in range(0, roundrobinparts):
         cur.execute(roundrobinselectquery.format(i, ratingValue))
-        sqlres = cur.fetchall()
-        for res in sqlres:
+        result = cur.fetchall()
+        for res in result:
             res = list(res)
             res.insert(0, 'RoundRobinRatingsPart{}'.format(i))
-            result.append(res)
+            ans.append(res)
 
-    writeToFile('PointQueryOut.txt', result)
+    writeToFile('PointQueryOut.txt', ans)
 
 
 def writeToFile(filename, rows):
