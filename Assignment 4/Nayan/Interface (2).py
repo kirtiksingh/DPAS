@@ -1,9 +1,13 @@
+#!/usr/bin/python2.7
+#
+# Assignment2 Interface
+#
+
 import psycopg2
 import os
 import sys
 # Donot close the connection inside this file i.e. do not perform openconnection.close()
 def RangeQuery(ratingsTableName, ratingMinValue, ratingMaxValue, openconnection):
-
     ans = []
     cur = openconnection.cursor()
 
@@ -17,10 +21,10 @@ def RangeQuery(ratingsTableName, ratingMinValue, ratingMaxValue, openconnection)
     for part in parts:
         cur.execute(rangeselectquery.format(part, ratingMinValue, ratingMaxValue))
         result = cur.fetchall()
-        for res in result:
-            res = list(res)
-            res.insert(0,'RangeRatingsPart{}'.format(part))
-            ans.append(res)
+        for r in result:
+            r = list(r)
+            r.insert(0,'RangeRatingsPart{}'.format(part))
+            ans.append(r)
 
     roundrobincountquery = '''SELECT partitionnum FROM roundrobinratingsmetadata;'''
     cur.execute(roundrobincountquery)
@@ -31,13 +35,12 @@ def RangeQuery(ratingsTableName, ratingMinValue, ratingMaxValue, openconnection)
     for i in range(0,roundrobinparts):
         cur.execute(roundrobinselectquery.format(i, ratingMinValue, ratingMaxValue))
         result = cur.fetchall()
-        for res in result:
-            res = list(res)
-            res.insert(0, 'RoundRobinRatingsPart{}'.format(i))
-            ans.append(res)
+        for r in result:
+            r = list(r)
+            r.insert(0, 'RoundRobinRatingsPart{}'.format(i))
+            ans.append(r)
 
     writeToFile('RangeQueryOut.txt', ans)
-
 
 
 
@@ -55,10 +58,10 @@ def PointQuery(ratingsTableName, ratingValue, openconnection):
     for part in parts:
         cur.execute(rangeselectquery.format(part, ratingValue))
         result = cur.fetchall()
-        for res in result:
-            res = list(res)
-            res.insert(0, 'RangeRatingsPart{}'.format(part))
-            ans.append(res)
+        for r in result:
+            r = list(r)
+            r.insert(0, 'RangeRatingsPart{}'.format(part))
+            ans.append(r)
 
     roundrobincountquery = '''SELECT partitionnum FROM roundrobinratingsmetadata;'''
 
@@ -70,12 +73,14 @@ def PointQuery(ratingsTableName, ratingValue, openconnection):
     for i in range(0, roundrobinparts):
         cur.execute(roundrobinselectquery.format(i, ratingValue))
         result = cur.fetchall()
-        for res in result:
-            res = list(res)
-            res.insert(0, 'RoundRobinRatingsPart{}'.format(i))
-            ans.append(res)
+        for r in result:
+            r = list(r)
+            r.insert(0, 'RoundRobinRatingsPart{}'.format(i))
+            ans.append(r)
 
     writeToFile('PointQueryOut.txt', ans)
+
+
 
 
 def writeToFile(filename, rows):
